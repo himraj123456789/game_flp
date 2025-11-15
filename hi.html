@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover" />
-<title>Flappy (mobile only) — happy bdy muskan</title>
+<title>Flappy (mobile only) — </title>
 <style>
   :root{
     --bg-top:#9ee0e7;
@@ -13,136 +13,19 @@
     --text:#ffffff;
   }
   html,body{height:100%;margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial;background:linear-gradient(var(--bg-top),var(--bg-bot));-webkit-tap-highlight-color:transparent;overflow:hidden}
-  /* container fills full viewport for phones */
-  .screen {
-    width:100vw;
-    height:100vh;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    position:relative;
-    background:transparent;
-    overflow:hidden;
-  }
-
-  /* canvas uses a 9:12 aspect but will scale to portrait phone */
-  #game {
-    width: min(480px, 96vw);
-    height: calc( (min(480px, 96vw) * 640) / 480 );
-    border-radius:12px;
-    box-shadow:0 12px 30px rgba(0,0,0,0.18);
-    touch-action: manipulation;
-    display:block;
-    -webkit-user-select:none;
-    user-select:none;
-    -moz-user-select:none;
-  }
-
-  /* top UI (start / mute) */
-  .top-ui {
-    position:absolute;
-    left:12px;
-    right:12px;
-    top:12px;
-    display:flex;
-    justify-content:space-between;
-    gap:8px;
-    pointer-events:none;
-  }
+  .screen { width:100vw; height:100vh; display:flex; align-items:center; justify-content:center; position:relative; background:transparent; overflow:hidden; }
+  #game { width: min(480px, 96vw); height: calc( (min(480px, 96vw) * 640) / 480 ); border-radius:12px; box-shadow:0 12px 30px rgba(0,0,0,0.18); touch-action: manipulation; display:block; -webkit-user-select:none; user-select:none; -moz-user-select:none; }
+  .top-ui { position:absolute; left:12px; right:12px; top:12px; display:flex; justify-content:space-between; gap:8px; pointer-events:none; }
   .top-ui .group { pointer-events:auto; display:flex; gap:8px; align-items:center; }
-  button.btn {
-    background:var(--accent);
-    color:var(--text);
-    border:0;
-    padding:10px 14px;
-    border-radius:12px;
-    font-weight:800;
-    font-size:16px;
-    box-shadow:0 8px 16px rgba(43,138,120,0.18);
-    touch-action: manipulation;
-  }
-  button.small {
-    background:rgba(255,255,255,0.95);
-    color:#222;
-    border-radius:10px;
-    padding:8px 10px;
-    font-weight:700;
-    box-shadow:0 6px 12px rgba(0,0,0,0.06);
-  }
-
-  /* big flap button (thumb area) */
-  .flap-btn {
-    position:absolute;
-    bottom:22px;
-    left:50%;
-    transform:translateX(-50%);
-    pointer-events:auto;
-    background:linear-gradient(180deg,#ffcf33,#ffb400);
-    border-radius:999px;
-    padding:16px 28px;
-    font-weight:900;
-    box-shadow:0 16px 30px rgba(0,0,0,0.22);
-    font-size:20px;
-    border:0;
-    touch-action: manipulation;
-  }
-
-  .score-pill {
-    position:absolute;
-    top:18px;
-    left:50%;
-    transform:translateX(-50%);
-    background:rgba(0,0,0,0.38);
-    color:#fff;
-    padding:8px 12px;
-    border-radius:999px;
-    font-weight:800;
-    font-size:18px;
-    pointer-events:none;
-  }
-
-  .celebration {
-    position:absolute;
-    top:100px;
-    left:50%;
-    transform:translateX(-50%);
-    pointer-events:none;
-    font-weight:900;
-    font-size:22px;
-    color:#fff;
-    text-shadow:0 8px 18px rgba(0,0,0,0.3);
-    padding:6px 12px;
-    border-radius:12px;
-    background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
-  }
-
-  /* mobile-only overlay for non-mobile devices */
-  .desktop-block {
-    display:none;
-    position:fixed;
-    inset:0;
-    background:linear-gradient(180deg, rgba(0,0,0,0.7), rgba(0,0,0,0.75));
-    color:#fff;
-    z-index:9999;
-    align-items:center;
-    justify-content:center;
-    text-align:center;
-    padding:20px;
-    font-size:18px;
-  }
+  button.btn { background:var(--accent); color:var(--text); border:0; padding:10px 14px; border-radius:12px; font-weight:800; font-size:16px; box-shadow:0 8px 16px rgba(43,138,120,0.18); touch-action: manipulation; }
+  button.small { background:rgba(255,255,255,0.95); color:#222; border-radius:10px; padding:8px 10px; font-weight:700; box-shadow:0 6px 12px rgba(0,0,0,0.06); }
+  .flap-btn { position:absolute; bottom:22px; left:50%; transform:translateX(-50%); pointer-events:auto; background:linear-gradient(180deg,#ffcf33,#ffb400); border-radius:999px; padding:16px 28px; font-weight:900; box-shadow:0 16px 30px rgba(0,0,0,0.22); font-size:20px; border:0; touch-action: manipulation; }
+  .score-pill { position:absolute; top:18px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.38); color:#fff; padding:8px 12px; border-radius:999px; font-weight:800; font-size:18px; pointer-events:none; }
+  .celebration { position:absolute; top:100px; left:50%; transform:translateX(-50%); pointer-events:none; font-weight:900; font-size:22px; color:#fff; text-shadow:0 8px 18px rgba(0,0,0,0.3); padding:8px 14px; border-radius:12px; background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)); display:none; }
+  .desktop-block { display:none; position:fixed; inset:0; background:linear-gradient(180deg, rgba(0,0,0,0.7), rgba(0,0,0,0.75)); color:#fff; z-index:9999; align-items:center; justify-content:center; text-align:center; padding:20px; font-size:18px; }
   .desktop-block .box { max-width:420px; }
-  .desktop-block button { margin-top:12px; }
-
-  @media (hover:hover) and (pointer:fine), (min-width:800px) {
-    /* likely desktop — show block overlay */
-    .desktop-block { display:flex; }
-    /* but keep layout so canvas still sized (under overlay) */
-  }
-
-  @media (max-width:380px) {
-    .flap-btn { padding:14px 20px; font-size:18px; bottom:14px; }
-    .celebration { font-size:18px; top:84px; }
-  }
+  @media (hover:hover) and (pointer:fine), (min-width:800px) { .desktop-block { display:flex; } }
+  @media (max-width:380px) { .flap-btn { padding:14px 20px; font-size:18px; bottom:14px; } .celebration { font-size:18px; top:84px; } }
 </style>
 </head>
 <body>
@@ -162,7 +45,7 @@
 
     <button id="flapBtn" class="flap-btn" aria-label="Flap">FLAP</button>
 
-    <div id="celebration" class="celebration" style="display:none;">😍 happy bdy muskan 😍</div>
+    <div id="celebration" class="celebration">😍 happy bdy muskan 😍</div>
 
     <div class="desktop-block" id="desktopBlock" role="dialog" aria-modal="true" aria-label="Mobile only">
       <div class="box">
@@ -196,7 +79,6 @@
   const celebrationEl = document.getElementById('celebration');
   const desktopBlock = document.getElementById('desktopBlock');
 
-  // scale canvas drawing buffer to devicePixelRatio for sharper rendering
   function scaleCanvasForDPR() {
     const dpr = Math.max(1, window.devicePixelRatio || 1);
     canvas.width = W * dpr;
@@ -250,20 +132,13 @@
 
   // ===== detect mobile (touch) =====
   const isMobile = (() => {
-    // prefer pointer/touch detection + small viewport
     const ua = navigator.userAgent || "";
     const touch = 'ontouchstart' in window || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0;
     const smallScreen = Math.min(window.innerWidth, window.innerHeight) <= 900;
     const mobileUA = /Mobi|Android|iPhone|iPad|iPod|Silk|Mobile/i.test(ua);
     return touch && smallScreen && mobileUA;
   })();
-
-  if(!isMobile){
-    // show overlay that forces mobile usage; user can dismiss with "Continue anyway"
-    desktopBlock.style.display = "flex";
-  } else {
-    desktopBlock.style.display = "none";
-  }
+  if(!isMobile) desktopBlock.style.display = "flex"; else desktopBlock.style.display = "none";
 
   // ===== input & audio unlock for mobile =====
   function onUserGesture(){
@@ -272,7 +147,6 @@
       if(bgAudio && bgAudio.src && !muted) bgAudio.play().catch(()=>{});
     }
   }
-
   function flapAction(){
     onUserGesture();
     if(!bird.alive){ reset(); return; }
@@ -280,19 +154,17 @@
     playClick();
   }
 
-  // remove keyboard reliance. Only allow pointer/touch/flap button.
-  canvas.addEventListener('pointerdown', (e) => { // handle taps on canvas
-    flapAction();
-  }, {passive:true});
-  flapBtn.addEventListener('touchstart', (e) => { e.preventDefault(); flapAction(); }, {passive:false});
-  flapBtn.addEventListener('mousedown', (e) => { e.preventDefault(); flapAction(); }, {passive:false});
+  // pointer/touch handlers
+  canvas.addEventListener('pointerdown', (e) => { flapAction(); }, {passive:true});
+  flapBtn.addEventListener('touchstart', (e)=>{ e.preventDefault(); flapAction(); }, {passive:false});
+  flapBtn.addEventListener('mousedown', (e)=>{ e.preventDefault(); flapAction(); }, {passive:false});
 
-  startBtn.addEventListener('touchstart', (e) => { e.preventDefault(); onUserGesture(); reset(); }, {passive:false});
-  startBtn.addEventListener('mousedown', (e) => { e.preventDefault(); onUserGesture(); reset(); }, {passive:false});
-  muteBtn.addEventListener('touchstart', (e) => { e.preventDefault(); muted = !muted; muteBtn.textContent = muted ? "Unmute" : "Mute"; if(muted) bgAudio && bgAudio.pause(); else if(userInteracted) bgAudio && bgAudio.play().catch(()=>{}); }, {passive:false});
-  muteBtn.addEventListener('mousedown', (e) => { e.preventDefault(); muted = !muted; muteBtn.textContent = muted ? "Unmute" : "Mute"; if(muted) bgAudio && bgAudio.pause(); else if(userInteracted) bgAudio && bgAudio.play().catch(()=>{}); }, {passive:false});
+  startBtn.addEventListener('touchstart', (e)=>{ e.preventDefault(); onUserGesture(); reset(); }, {passive:false});
+  startBtn.addEventListener('mousedown', (e)=>{ e.preventDefault(); onUserGesture(); reset(); }, {passive:false});
 
-  // tiny click via WebAudio (short)
+  muteBtn.addEventListener('touchstart', (e)=>{ e.preventDefault(); muted = !muted; muteBtn.textContent = muted ? "Unmute" : "Mute"; if(muted) bgAudio && bgAudio.pause(); else if(userInteracted) bgAudio && bgAudio.play().catch(()=>{}); }, {passive:false});
+  muteBtn.addEventListener('mousedown', (e)=>{ e.preventDefault(); muted = !muted; muteBtn.textContent = muted ? "Unmute" : "Mute"; if(muted) bgAudio && bgAudio.pause(); else if(userInteracted) bgAudio && bgAudio.play().catch(()=>{}); }, {passive:false});
+
   function playClick(){
     if(muted) return;
     try{
@@ -310,62 +182,38 @@
 
   // ===== audio element for bg music (local path) =====
   const bgAudio = document.createElement('audio');
-  bgAudio.loop = true;
-  bgAudio.preload = "auto";
-  bgAudio.style.display = "none";
-  document.body.appendChild(bgAudio);
-
-  bgAudio.addEventListener('error', () => {
-    console.warn("Background audio failed to load from DEFAULT_MUSIC_PATH — check the path or server.");
-  });
+  bgAudio.loop = true; bgAudio.preload = "auto"; bgAudio.style.display = "none"; document.body.appendChild(bgAudio);
+  bgAudio.addEventListener('error', ()=>{ console.warn("Background audio failed to load from DEFAULT_MUSIC_PATH — check the path or server."); });
 
   // ===== local asset loaders (bird & music) =====
   function tryLoadLocalBird(){
     if(!DEFAULT_BIRD_PATH) return;
     const img = new Image();
     img.crossOrigin = "anonymous";
-    img.onload = () => {
-      birdAsset = img;
-      useAsset = true;
-      birdScale = (BIRD_R * 2.2) / Math.max(img.width, img.height);
-      console.log("Loaded bird asset from", DEFAULT_BIRD_PATH);
-    };
-    img.onerror = (ev) => {
-      useAsset = false;
-      console.warn("Could not load bird from path:", DEFAULT_BIRD_PATH, ev);
-    };
-    // add cache-buster to avoid stale cache on mobile during dev
+    img.onload = () => { birdAsset = img; useAsset = true; birdScale = (BIRD_R * 2.2) / Math.max(img.width, img.height); console.log("Loaded bird asset from", DEFAULT_BIRD_PATH); };
+    img.onerror = (ev) => { useAsset = false; console.warn("Could not load bird from path:", DEFAULT_BIRD_PATH, ev); };
     img.src = DEFAULT_BIRD_PATH + (DEFAULT_BIRD_PATH.indexOf('?') === -1 ? ('?cb=' + Date.now()) : '');
   }
+  function tryLoadLocalMusic(){ if(!DEFAULT_MUSIC_PATH) return; bgAudio.src = DEFAULT_MUSIC_PATH; bgAudio.load(); bgAudio.addEventListener('canplay', ()=>{ console.log("Background music loaded from", DEFAULT_MUSIC_PATH); }, {once:true}); }
 
-  function tryLoadLocalMusic(){
-    if(!DEFAULT_MUSIC_PATH) return;
-    bgAudio.src = DEFAULT_MUSIC_PATH;
-    bgAudio.load();
-    bgAudio.addEventListener('canplay', () => { console.log("Background music loaded from", DEFAULT_MUSIC_PATH); }, {once:true});
-  }
-
-  // attempt loads
-  tryLoadLocalBird();
-  tryLoadLocalMusic();
+  tryLoadLocalBird(); tryLoadLocalMusic();
 
   // ===== drawing helpers =====
   function drawGround(){ ctx.fillStyle = "#d3a35a"; ctx.fillRect(0, H-80, W, 80); }
-  function drawBird(){
-    if(useAsset && birdAsset){
-      const w = birdAsset.width * birdScale, h = birdAsset.height * birdScale;
-      ctx.drawImage(birdAsset, bird.x - w/2, bird.y - h/2, w, h);
+  function drawBird(){ if(useAsset && birdAsset){ const w = birdAsset.width * birdScale, h = birdAsset.height * birdScale; ctx.drawImage(birdAsset, bird.x - w/2, bird.y - h/2, w, h); } else { ctx.beginPath(); ctx.fillStyle="#ffcc33"; ctx.arc(bird.x, bird.y, bird.r,0,Math.PI*2); ctx.fill(); ctx.fillStyle="#333"; ctx.beginPath(); ctx.arc(bird.x+6, bird.y-4, 3,0,Math.PI*2); ctx.fill(); } }
+  function drawScore(){ ctx.fillStyle="#fff"; ctx.font="700 36px system-ui,Arial"; ctx.textAlign="center"; ctx.fillText(String(score), W/2, 68); }
+
+  // show/hide DOM celebration element based on showCeleb flag
+  function updateCelebrationVisibility(){
+    if(showCeleb){
+      celebrationEl.style.display = "block";
+      // small celebratory beep
+      if(!muted) {
+        try{ const Actx = window.AudioContext || window.webkitAudioContext; if(Actx){ const a = new Actx(); const o = a.createOscillator(); const g = a.createGain(); o.type='triangle'; o.frequency.value=880; g.gain.value=0.06; o.connect(g); g.connect(a.destination); const now=a.currentTime; g.gain.setValueAtTime(0.06, now); g.gain.exponentialRampToValueAtTime(0.0001, now + 0.28); o.start(now); o.stop(now + 0.28); } } catch(e){}
     } else {
-      ctx.beginPath(); ctx.fillStyle="#ffcc33"; ctx.arc(bird.x, bird.y, bird.r,0,Math.PI*2); ctx.fill();
-      ctx.fillStyle="#333"; ctx.beginPath(); ctx.arc(bird.x+6, bird.y-4, 3,0,Math.PI*2); ctx.fill();
+      celebrationEl.style.display = "none";
     }
   }
-  function drawScore(){ ctx.fillStyle="#fff"; ctx.font="700 36px system-ui,Arial"; ctx.textAlign="center"; ctx.fillText(String(score), W/2, 68); }
-  function drawCeleb(){
-    if(!showCeleb) return;
-    celebrationEl.style.display = "block";
-  }
-  function hideCeleb(){ celebrationEl.style.display = "none"; }
 
   // ===== game loop =====
   function update(now){
@@ -380,15 +228,28 @@
 
       for(const p of pipes){
         p.update(dt);
-        if(!p.passed && (p.x + p.w) < bird.x){ p.passed = true; score++; scoreLabel.textContent = score;
-          if(score === 3 && !celebratedAt3){ celebratedAt3 = true; showCeleb = true; celebTimer = CELEB_DURATION; console.log(CELEB_TEXT); onUserGesture(); /* music may start */ }
-          // small sound can be added here if desired
+        if(!p.passed && (p.x + p.w) < bird.x){
+          p.passed = true;
+          score++;
+          scoreLabel.textContent = score;
+          // Trigger celebration exactly when score becomes 3 (only once)
+          if(score === 3 && !celebratedAt3){
+            celebratedAt3 = true;
+            showCeleb = true;
+            celebTimer = CELEB_DURATION;
+            console.log(CELEB_TEXT);
+            onUserGesture(); // ensure audio unlock
+            updateCelebrationVisibility();
+          }
         }
         if(p.collides(bird)){ bird.alive = false; }
       }
 
       pipes = pipes.filter(p => !p.isOff());
-      if(showCeleb){ celebTimer -= dt; if(celebTimer <= 0){ showCeleb = false; hideCeleb(); celebTimer = 0; } }
+      if(showCeleb){
+        celebTimer -= dt;
+        if(celebTimer <= 0){ showCeleb = false; updateCelebrationVisibility(); celebTimer = 0; }
+      }
     }
 
     render();
@@ -396,21 +257,28 @@
   }
 
   function render(){
-    // clear and draw background gradient
     ctx.clearRect(0,0,W,H);
     const g = ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,"#9ee0e7"); g.addColorStop(1,"#70c5ce");
     ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
-
     for(const p of pipes) p.draw(ctx);
     drawGround(); drawBird(); drawScore();
-    if(!bird.alive){ ctx.fillStyle="rgba(0,0,0,0.45)"; ctx.fillRect(0,0,W,H); ctx.fillStyle="#fff"; ctx.textAlign="center"; ctx.font="700 36px system-ui,Arial"; ctx.fillText("Game Over", W/2, H/2 - 6); ctx.font="500 18px system-ui,Arial"; ctx.fillText("Tap Start to restart", W/2, H/2 + 28); }
-    else if(pipes.length === 0 && Math.abs(bird.y - H/2) < 40 && bird.vy === 0){ ctx.fillStyle="rgba(0,0,0,0.35)"; ctx.fillRect(0,0,W,H); ctx.fillStyle="#fff"; ctx.textAlign="center"; ctx.font="700 28px system-ui,Arial"; ctx.fillText("Tap / FLAP to play", W/2, H/2 - 10); ctx.font="500 16px system-ui,Arial"; ctx.fillText("Music starts on first tap", W/2, H/2 + 20); }
+    if(!bird.alive){
+      ctx.fillStyle="rgba(0,0,0,0.45)"; ctx.fillRect(0,0,W,H);
+      ctx.fillStyle="#fff"; ctx.textAlign="center"; ctx.font="700 36px system-ui,Arial";
+      ctx.fillText("Game Over", W/2, H/2 - 6);
+      ctx.font="500 18px system-ui,Arial"; ctx.fillText("Tap Start to restart", W/2, H/2 + 28);
+    } else if(pipes.length === 0 && Math.abs(bird.y - H/2) < 40 && bird.vy === 0){
+      ctx.fillStyle="rgba(0,0,0,0.35)"; ctx.fillRect(0,0,W,H);
+      ctx.fillStyle="#fff"; ctx.textAlign="center"; ctx.font="700 28px system-ui,Arial";
+      ctx.fillText("Tap / FLAP to play", W/2, H/2 - 10);
+      ctx.font="500 16px system-ui,Arial"; ctx.fillText("Music starts on first tap", W/2, H/2 + 20);
+    }
   }
 
   // start loop
   reset(); last = performance.now(); requestAnimationFrame(update);
 
-  // ===== expose minimal API (optional) =====
+  // expose API (optional)
   window.__flappy = {
     setBirdFromPath(path){ const img = new Image(); img.crossOrigin='anonymous'; img.onload = ()=>{ birdAsset = img; useAsset = true; birdScale = (BIRD_R*2.2)/Math.max(img.width,img.height); }; img.onerror = ()=>{ console.warn('Failed to load bird from', path); }; img.src = path; },
     setMusicFromPath(path){ bgAudio.src = path; bgAudio.load(); if(userInteracted && !muted) bgAudio.play().catch(()=>{}); }
