@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Flappy — local assets (happy bdy muskan)</title>
+  <style>
+    :root{--bg:#70c5ce;--ground:#d3a35a}
+    html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;background:linear-gradient(#9ee0e7,var(--bg));-webkit-tap-highlight-color:transparent}
+    .wrap{display:flex;align-items:center;justify-content:center;height:100%;padding:18px;box-sizing:border-box}
+    canvas{background:transparent;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,0.12);touch-action:manipulation;display:block}
+    .controls{position:absolute;left:12px;top:12px;display:flex;gap:8px}
+    .btn{padding:8px 12px;border-radius:8px;border:0;background:#2b8a78;color:#fff;font-weight:700;cursor:pointer}
+    .small{padding:6px 10px;border-radius:8px;border:0;background:#eeeeee;cursor:pointer}
+    .score{position:absolute;right:12px;top:12px;background:rgba(255,255,255,0.9);padding:8px;border-radius:8px;font-weight:600}
+    @media (max-width:520px){canvas{width:92vw;height:calc(92vw*(640/480));max-height:92vh}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <canvas id="game" width="480" height="640" aria-label="Flappy bird game"></canvas>
+
+    <div class="controls" aria-hidden="false">
+      <button id="startBtn" class="btn">Start / Restart</button>
+      <button id="muteBtn" class="small">Mute</button>
+    </div>
+
+    <div class="score">Score 3 nd see message : <span id="scoreLabel">0</span></div>
+  </div>
+
+<script>
+(() => {
+  // ======= CONFIG: set your local file paths here =======
+  // Example: put bird.png and music.mp3 inside a folder named "assets" next to this HTML.
+  // DEFAULT_BIRD_PATH may be relative (e.g. "assets/bird.png") or absolute on your server (e.g. "/static/bird.png").
+  // Browsers sometimes block file:// loading — see note below if you run into problems.
+  const DEFAULT_BIRD_PATH  = "assets/qw.png";   // <-- change to your bird image path (PNG/JPG)
+  const DEFAULT_MUSIC_PATH = "assets/dd.mp3";  // <-- change to your music path (mp3/m4a/ogg)
+
+  // ======= GAME SETTINGS =======
+  const W = 480, H = 640;
+  const GRAV = 0.5, FLAP = -9, PIPE_SPEED = 2.6, PIPE_WIDTH = 78, PIPE_GAP = 150;
+  const PIPE_INTERVAL = 1500, BIRD_R = 16;
+  const CELEB_TEXT = " 😍 happy bdy muskan 😍 ", CELEB_DURATION = 2200;
+
+  // ======= DOM =======
+  const canvas = document.getElementById('game');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  const startBtn = document.getElementById('startBtn');
+  const muteBtn = document.getElementById('muteBtn');
+  const scoreLabel = document.getElementById('scoreLabel');
+
+  // ======= Game state =======
+  let last = 0, spawn = 0, pipes = [], score = 0, showCeleb = false, celebTimer = 0;
+  let muted = false, celebratedAt3 = false, userInteracted = false;
+  let birdAsset = null, birdScale = 1, useAsset = false;
+
+  const bird = { x: 100, y: H/2, vy: 0, r: BIRD_R, alive: true };
+
+  // ======= Utilities =======
+  function randInt(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+  function reset(){
+    pipes = []; score = 0; scoreLabel.textContent = score; bird.y = H/2; bird.vy = 0; bird.alive = true;
+    spawn = 0; showCeleb = false; celebTimer = 0; celebratedAt3 = false; last = performance.now();
+  }
+
+  class Pipe {
+    constructor(x){ this.x = x; this.w = PIPE_WIDTH; const m = 60; this.gapY = randInt(m+PIPE_GAP/2, H-m-PIPE_GAP/2); this.passed = false; }
+    update(dt){ this.x -= PIPE_SPEED * (dt / (1000/60)); }
+    draw(ctx){
+      ctx.fillStyle = "#2ea34a";
+      ctx.fillRect(this.x, 0, this.w, this.gapY - PIPE_GAP/2);
+      ctx.fillRect(this.x, this.gapY + PIPE_GAP/2, this.w, H - (this.gapY + PIPE_GAP/2) - 80);
+      ctx.fillStyle = "rgba(0,0,0,0.06)";
+      ctx.fillRect(this.x, this.gapY - 6 - PIPE_GAP/2, this.w, 6);
+    }
+    isOff(){ return this.x + this.w < 0; }
+    collides(b){
+      const bx = b.x, by = b.y, r = b.r;
+      const top = {x:this.x, y:0, w:this.w, h:this.gapY - PIPE_GAP/2};
+      const bottom = {x:this.x, y:this.gapY + PIPE_GAP/2, w:this.w, h:H - (this.gapY + PIPE_GAP/2) - 80};
+      return circRect(bx,by,r,top) || circRect(bx,by,r,bottom);
+    }
+  }
+
+  function circRect(cx,cy,r,rect){
+    const nx = Math.max(rect.x, Math.min(cx, rect.x + rect.w));
+    const ny = Math.max(rect.y, Math.min(cy, rect.y + rect.h));
+    const dx = cx - nx, dy = cy - ny;
+    return (dx*dx + dy*dy) < (r*r);
+  }
+
+  // ======= Input & audio unlock =======
+  function onUserGesture(){
+    if(!userInteracted){
+      userInteracted = true;
+      // if an audio element exists, try to play (some browsers require gesture)
+      if(bgAudio && bgAudio.src && !muted) {
+        bgAudio.play().catch(()=>{});
+      }
+    }
+  }
+
+  function flap(){
+    onUserGesture();
+    if(!bird.alive){ reset(); return; }
+    bird.vy = FLAP;
+    playClick();
+  }
+
+  window.addEventListener('keydown', e => { if(e.code === "Space" || e.code === "ArrowUp"){ e.preventDefault(); flap(); } }, {passive:false});
+  canvas.addEventListener('pointerdown', e => { flap(); });
+
+  startBtn.addEventListener('click', ()=>{ onUserGesture(); reset(); });
+  muteBtn.addEventListener('click', ()=>{ muted = !muted; muteBtn.textContent = muted ? "Unmute" : "Mute"; if(muted) bgAudio && bgAudio.pause(); else if(userInteracted) bgAudio && bgAudio.play().catch(()=>{}); });
+
+  // tiny click sound using WebAudio (short-lived)
+  function playClick(){
+    if(muted) return;
+    try{
+      const Actx = window.AudioContext || window.webkitAudioContext;
+      if(!Actx) return;
+      const a = new Actx();
+      const o = a.createOscillator(), g = a.createGain();
+      o.type = "sine"; o.frequency.value = 1200;
+      g.gain.value = 0.02;
+      o.connect(g); g.connect(a.destination);
+      const now = a.currentTime;
+      g.gain.setValueAtTime(0.02, now); g.gain.exponentialRampToValueAtTime(0.0001, now + 0.06);
+      o.start(now); o.stop(now + 0.07);
+    }catch(e){}
+  }
+
+  // ======= Local audio element (for background music) =======
+  // We'll create an <audio> element programmatically and try to load DEFAULT_MUSIC_PATH.
+  const bgAudio = document.createElement('audio');
+  bgAudio.loop = true;
+  bgAudio.preload = "auto";
+  bgAudio.style.display = "none";
+  document.body.appendChild(bgAudio);
+
+  bgAudio.addEventListener('error', () => {
+    console.warn("Background audio failed to load from DEFAULT_MUSIC_PATH — check the path or serve files via HTTP.");
+  });
+
+  // ======= Load local bird image (if available) =======
+  function tryLoadLocalBird(){
+    if(!DEFAULT_BIRD_PATH) return;
+    const img = new Image();
+    img.crossOrigin = "anonymous"; // harmless; if local file this may be ignored
+    img.onload = () => {
+      birdAsset = img;
+      useAsset = true;
+      birdScale = (BIRD_R * 2.2) / Math.max(img.width, img.height);
+      console.log("Loaded bird asset from", DEFAULT_BIRD_PATH);
+    };
+    img.onerror = () => {
+      useAsset = false;
+      console.warn("Could not load bird from path:", DEFAULT_BIRD_PATH);
+    };
+    img.src = DEFAULT_BIRD_PATH;
+  }
+
+  function tryLoadLocalMusic(){
+    if(!DEFAULT_MUSIC_PATH) return;
+    bgAudio.src = DEFAULT_MUSIC_PATH;
+    // Do not auto-play — wait for user gesture. But we can attempt to load metadata.
+    bgAudio.load();
+    bgAudio.addEventListener('canplay', () => {
+      console.log("Background music loaded from", DEFAULT_MUSIC_PATH);
+    }, {once:true});
+  }
+
+  // ======= Drawing helpers =======
+  function drawGround(){ ctx.fillStyle = "#d3a35a"; ctx.fillRect(0, H-80, W, 80); }
+  function drawBird(){
+    if(useAsset && birdAsset){
+      const w = birdAsset.width * birdScale, h = birdAsset.height * birdScale;
+      ctx.drawImage(birdAsset, bird.x - w/2, bird.y - h/2, w, h);
+    } else {
+      ctx.beginPath(); ctx.fillStyle="#ffcc33"; ctx.arc(bird.x, bird.y, bird.r,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle="#333"; ctx.beginPath(); ctx.arc(bird.x+6, bird.y-4, 3,0,Math.PI*2); ctx.fill();
+    }
+  }
+  function drawScore(){ ctx.fillStyle="#fff"; ctx.font="bold 32px system-ui,Arial"; ctx.textAlign="center"; ctx.fillText(String(score), W/2, 64); }
+  function drawCeleb(){ if(!showCeleb) return; ctx.save(); ctx.fillStyle="#fff"; ctx.font="700 34px system-ui,Arial"; ctx.textAlign="center"; ctx.shadowColor="rgba(0,0,0,0.35)"; ctx.shadowBlur=14; ctx.fillText(CELEB_TEXT, W/2, 120); ctx.restore(); }
+  function drawStartOverlay(){ ctx.fillStyle="rgba(0,0,0,0.35)"; ctx.fillRect(0,0,W,H); ctx.fillStyle="#fff"; ctx.textAlign="center"; ctx.font="700 28px system-ui,Arial"; ctx.fillText("Tap / Space to flap", W/2, H/2 - 10); ctx.font="500 18px system-ui,Arial"; ctx.fillText("Music starts after first tap", W/2, H/2 + 20); }
+
+  // ======= Game loop =======
+  function update(now){
+    const dt = now - last; last = now;
+    if(bird.alive){
+      bird.vy += GRAV; bird.y += bird.vy;
+      if(bird.y + bird.r >= H - 80){ bird.y = H - 80 - bird.r; bird.alive = false; playDeath(); }
+      if(bird.y - bird.r <= 0){ bird.y = bird.r; bird.vy = 0; }
+
+      spawn += dt;
+      if(spawn >= PIPE_INTERVAL){ spawn = 0; pipes.push(new Pipe(W + 10)); }
+
+      for(const p of pipes){
+        p.update(dt);
+        if(!p.passed && (p.x + p.w) < bird.x){ p.passed = true; score++; scoreLabel.textContent = score;
+          if(score === 3 && !celebratedAt3){ celebratedAt3 = true; showCeleb = true; celebTimer = CELEB_DURATION; console.log(CELEB_TEXT); playScore(); }
+          else playScoreSmall();
+        }
+        if(p.collides(bird)){ bird.alive = false; playDeath(); }
+      }
+
+      pipes = pipes.filter(p => !p.isOff());
+      if(showCeleb){ celebTimer -= dt; if(celebTimer <= 0){ showCeleb = false; celebTimer = 0; } }
+    }
+
+    render();
+    requestAnimationFrame(update);
+  }
+
+  // death & score sounds (very short)
+  function playScoreSmall(){ if(muted) return; try{ const Actx = window.AudioContext || window.webkitAudioContext; if(!Actx) return; const a = new Actx(); const o = a.createOscillator(); const g = a.createGain(); o.type='sine'; o.frequency.value=880; g.gain.value=0.04; o.connect(g); g.connect(a.destination); const now=a.currentTime; g.gain.setValueAtTime(0.04,now); g.gain.exponentialRampToValueAtTime(0.0001, now+0.09); o.start(now); o.stop(now+0.11);}catch(e){} }
+  function playScore(){ if(muted) return; playScoreSmall(); }
+  function playDeath(){ if(muted) return; try{ const Actx = window.AudioContext || window.webkitAudioContext; if(!Actx) return; const a = new Actx(); const o = a.createOscillator(); const g = a.createGain(); o.type='sawtooth'; o.frequency.value=140; g.gain.value=0.06; o.connect(g); g.connect(a.destination); const now=a.currentTime; g.gain.setValueAtTime(0.06,now); g.gain.exponentialRampToValueAtTime(0.0001, now+0.26); o.start(now); o.stop(now+0.28);}catch(e){} }
+
+  function render(){
+    ctx.clearRect(0,0,W,H);
+    const g = ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,"#9ee0e7"); g.addColorStop(1,"#70c5ce"); ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+    for(const p of pipes) p.draw(ctx);
+    drawGround(); drawBird(); drawScore(); drawCeleb();
+    if(!bird.alive){ ctx.fillStyle="rgba(0,0,0,0.45)"; ctx.fillRect(0,0,W,H); ctx.fillStyle="#fff"; ctx.textAlign="center"; ctx.font="700 36px system-ui,Arial"; ctx.fillText("Game Over", W/2, H/2 - 6); ctx.font="500 18px system-ui,Arial"; ctx.fillText("Tap Start / Press Space to restart", W/2, H/2 + 28); }
+    else if(pipes.length === 0 && Math.abs(bird.y - H/2) < 40 && bird.vy === 0){ drawStartOverlay(); }
+  }
+
+  // ======= Start =======
+  reset(); last = performance.now();
+  requestAnimationFrame(update);
+
+  // ======= Try to load local assets =======
+  tryLoadLocalBird();
+  tryLoadLocalMusic();
+
+  // ======= Helpful note about file serving =======
+  // If you open the HTML using "file://..." some browsers block local resource loading for security.
+  // Recommended: place this HTML and your asset files in the same folder and run a simple local server:
+  //   python -m http.server 8000
+  // then open http://localhost:8000/flappy_local_assets.html in your browser/phone (same Wi-Fi).
+  // This avoids cross-origin/file:// restrictions and works reliably on mobile.
+  // =================================================
+
+  // ======= Expose minimal API if you want to change at runtime =======
+  window.__flappy = {
+    setBirdFromPath(path){ const img = new Image(); img.crossOrigin='anonymous'; img.onload = ()=>{ birdAsset = img; useAsset = true; birdScale = (BIRD_R*2.2)/Math.max(img.width,img.height); }; img.onerror = ()=>{ console.warn('Failed to load bird from', path); }; img.src = path; },
+    setMusicFromPath(path){ bgAudio.src = path; bgAudio.load(); if(userInteracted && !muted) bgAudio.play().catch(()=>{}); }
+  };
+
+  // Accessibility: allow keyboard focus on canvas and prevent touch scroll
+  canvas.setAttribute('tabindex','0');
+  canvas.addEventListener('touchstart', e => { e.preventDefault(); }, {passive:false});
+
+})();
+</script>
+</body>
+</html>
